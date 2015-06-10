@@ -50,7 +50,7 @@ class ArtifactRepository extends ArrayRepository
 
         $directory = new \RecursiveDirectoryIterator($path);
         $iterator = new \RecursiveIteratorIterator($directory);
-        $regex = new \RegexIterator($iterator, '/^.+\.(zip|phar)$/i');
+        $regex = new \RegexIterator($iterator, '/^.+\.(zip|phar|jar)$/i');
         foreach ($regex as $file) {
             /* @var $file \SplFileInfo */
             if (!$file->isFile()) {
