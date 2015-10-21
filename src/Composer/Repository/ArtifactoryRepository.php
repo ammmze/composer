@@ -108,7 +108,7 @@ class ArtifactoryRepository extends ArrayRepository
             }
             $package['version'] = $version;
         }
-        var_dump($package);
+        
         $package['dist'] = array(
             'type' => 'zip',
             'url' => $artifact,
