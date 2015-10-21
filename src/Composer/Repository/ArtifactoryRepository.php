@@ -51,21 +51,33 @@ class ArtifactoryRepository extends ArrayRepository
         $this->searchArtifactory($this->artifactoryHome);
     }
 
-    private function searchArtifactory($root)
+    protected function searchForArtifacts()
     {
         $io = $this->io;
-
-        $url = sprintf("%s/api/search/artifact?name=%s&repos=%s", $root, $this->searchName, implode(',', $this->repos));
+        $url = sprintf("%s/api/search/artifact?name=%s&repos=%s", $this->artifactoryHome, $this->searchName, implode(',', $this->repos));
         $data = file_get_contents($url);
 
         if ($data === false) {
             if ($io->isVerbose()) {
                 $io->writeError("Failed to search for artifacts from <comment>{$url}</comment>");
-                return;
+                return null;
             }
         }
 
-        $results = json_decode($data)->results;
+        return $data;
+    }
+
+    private function searchArtifactory($root)
+    {
+        $io = $this->io;
+
+        $response = json_decode($this->searchForArtifacts());
+
+        if ($response == null) {
+            return;
+        }
+
+        $results = $response->results;
 
         foreach ($results as $result) {
             $dataUri = $result->uri;
@@ -87,16 +99,28 @@ class ArtifactoryRepository extends ArrayRepository
         }
     }
 
+    protected function getArtifactData($dataUri)
+    {
+        return file_get_contents($dataUri);
+    }
+
+    protected function getComposer($artifactUri)
+    {
+        $composerFile = "$artifactUri!composer.json";
+        return file_get_contents($composerFile);
+    }
+
     private function getComposerInformation($dataUri)
     {
-        $data = json_decode(file_get_contents($dataUri));
+        var_dump($dataUri);
+        $data = json_decode($this->getArtifactData($dataUri));
         if ($data === false) {
             return null;
         }
         $artifact = $data->downloadUri;
 
         $composerFile = "$artifact!composer.json";
-        $json = file_get_contents($composerFile);
+        $json = $this->getComposer($artifact);
 
         $package = JsonFile::parseJson($json, $composerFile);
         if (!isset($package['version'])) {
@@ -108,7 +132,7 @@ class ArtifactoryRepository extends ArrayRepository
             }
             $package['version'] = $version;
         }
-        
+
         $package['dist'] = array(
             'type' => 'zip',
             'url' => $artifact,
