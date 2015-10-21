@@ -12,6 +12,8 @@
 
 namespace Composer\Repository;
 
+use Composer\Cache;
+use Composer\Config;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Composer\Package\Loader\ArrayLoader;
@@ -34,13 +36,14 @@ class ArtifactoryRepository extends ArrayRepository
 
     protected $versionParser;
 
-    public function __construct(array $repoConfig, IOInterface $io)
+    public function __construct(array $repoConfig, IOInterface $io, Config $config)
     {
         $this->loader = new ArrayLoader();
         $this->artifactoryHome = preg_replace("|/$|", "", $repoConfig['url']);
         $this->searchName = $repoConfig['searchName'];
         $this->repos = $repoConfig['repos'] ?: array();
         $this->io = $io;
+        $this->cache = new Cache($io, $config->get('cache-repo-dir').'/'.preg_replace('{[^a-z0-9.]}i', '-', $repoConfig['url']), 'a-z0-9.$');
         $this->versionParser = new VersionParser();
     }
 
@@ -112,32 +115,37 @@ class ArtifactoryRepository extends ArrayRepository
 
     private function getComposerInformation($dataUri)
     {
-        var_dump($dataUri);
-        $data = json_decode($this->getArtifactData($dataUri));
-        if ($data === false) {
-            return null;
-        }
-        $artifact = $data->downloadUri;
-
-        $composerFile = "$artifact!composer.json";
-        $json = $this->getComposer($artifact);
-
-        $package = JsonFile::parseJson($json, $composerFile);
-        if (!isset($package['version'])) {
-            $version = basename(dirname($artifact));
-            try {
-                $version = $this->versionParser->normalize($version);
-            } catch (\UnexpectedValueException $e) {
-                $version = $this->versionParser->normalize('dev-' . $version);
+        $cacheKey = base64_encode($dataUri) . '.json';
+        if ($res = $this->cache->read($cacheKey)) {
+            $package = JsonFile::parseJson($res);
+        } else {
+            $data = json_decode($this->getArtifactData($dataUri));
+            if ($data === false) {
+                return null;
             }
-            $package['version'] = $version;
-        }
+            $artifact = $data->downloadUri;
 
-        $package['dist'] = array(
-            'type' => 'zip',
-            'url' => $artifact,
-            'shasum' => $data->checksums->sha1,
-        );
+            $composerFile = "$artifact!composer.json";
+            $json = $this->getComposer($artifact);
+            $package = JsonFile::parseJson($json, $composerFile);
+            if (!isset($package['version'])) {
+                $version = basename(dirname($artifact));
+                try {
+                    $version = $this->versionParser->normalize($version);
+                } catch (\UnexpectedValueException $e) {
+                    $version = $this->versionParser->normalize('dev-' . $version);
+                }
+                $package['version'] = $version;
+            }
+
+            $package['dist'] = array(
+                'type' => 'zip',
+                'url' => $artifact,
+                'shasum' => $data->checksums->sha1,
+            );
+
+            $this->cache->write($cacheKey, json_encode($package));
+        }
 
         $package = $this->loader->load($package);
 

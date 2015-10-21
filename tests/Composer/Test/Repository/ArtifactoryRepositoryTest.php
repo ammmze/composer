@@ -12,6 +12,7 @@
 
 namespace Composer\Repository;
 
+use Composer\Test\Mock\FactoryMock;
 use Composer\TestCase;
 use Composer\IO\NullIO;
 use Composer\Config;
@@ -36,7 +37,7 @@ class ArtifactoryRepositoryTest extends TestCase
 
         $coordinates = array('type' => 'artifactory', 'url' => 'http://localhost', 'searchName' => 'member-service-api-php-client*.jar', 'repos' => ['libs-snapshot-local', 'libs-release-local']);
         $repo = $this->getMockBuilder("\\Composer\\Repository\\ArtifactoryRepository")
-            ->setConstructorArgs([$coordinates, new NullIO(), new Config()])
+            ->setConstructorArgs([$coordinates, new NullIO(), FactoryMock::createConfig()])
             ->setMethods(array('searchForArtifacts', 'getArtifactData', 'getComposer'))
             ->getMock();
 
