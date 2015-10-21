@@ -34,7 +34,7 @@ class ArtifactoryRepositoryTest extends TestCase
             'composer/composer-1.0.0-alpha6',
         );
 
-        $coordinates = array('type' => 'artifact', 'url' => 'http://localhost', 'searchName' => 'member-service-api-php-client*.jar', 'repos' => ['libs-snapshot-local', 'libs-release-local']);
+        $coordinates = array('type' => 'artifactory', 'url' => 'http://localhost', 'searchName' => 'member-service-api-php-client*.jar', 'repos' => ['libs-snapshot-local', 'libs-release-local']);
         $repo = $this->getMockBuilder("\\Composer\\Repository\\ArtifactoryRepository")
             ->setConstructorArgs([$coordinates, new NullIO(), new Config()])
             ->setMethods(array('searchForArtifacts', 'getArtifactData', 'getComposer'))
@@ -78,41 +78,3 @@ class ArtifactoryRepositoryTest extends TestCase
         $this->assertSame($expectedPackages, $foundPackages);
     }
 }
-
-//Files jsonInFirstLevel.zip, jsonInRoot.zip and jsonInSecondLevel.zip were generated with:
-//
-//$archivesToCreate = array(
-//    'jsonInRoot' => array(
-//        "extra.txt"     => "Testing testing testing",
-//        "composer.json" => '{  "name": "test/jsonInRoot", "version": "1.0.0" }',
-//        "subdir/extra.txt"     => "Testing testing testing",
-//        "subdir/extra2.txt"     => "Testing testing testing",
-//    ),
-//
-//    'jsonInFirstLevel' => array(
-//        "extra.txt"     => "Testing testing testing",
-//        "subdir/composer.json" => '{  "name": "test/jsonInFirstLevel", "version": "1.0.0" }',
-//        "subdir/extra.txt"     => "Testing testing testing",
-//        "subdir/extra2.txt"     => "Testing testing testing",
-//    ),
-//
-//    'jsonInSecondLevel' => array(
-//        "extra.txt"     => "Testing testing testing",
-//        "subdir/extra1.txt"     => "Testing testing testing",
-//        "subdir/foo/composer.json" => '{  "name": "test/jsonInSecondLevel", "version": "1.0.0" }',
-//        "subdir/foo/extra1.txt"     => "Testing testing testing",
-//        "subdir/extra2.txt"     => "Testing testing testing",
-//        "subdir/extra3.txt"     => "Testing testing testing",
-//    ),
-//);
-//
-//foreach ($archivesToCreate as $archiveName => $fileDetails) {
-//    $zipFile = new ZipArchive();
-//    $zipFile->open("$archiveName.zip", ZIPARCHIVE::CREATE);
-//
-//    foreach ($fileDetails as $filename => $fileContents) {
-//        $zipFile->addFromString($filename, $fileContents);
-//    }
-//
-//    $zipFile->close();
-//}
