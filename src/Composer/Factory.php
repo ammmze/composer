@@ -332,6 +332,7 @@ class Factory
         $rm->setRepositoryClass('perforce', 'Composer\Repository\VcsRepository');
         $rm->setRepositoryClass('hg', 'Composer\Repository\VcsRepository');
         $rm->setRepositoryClass('artifact', 'Composer\Repository\ArtifactRepository');
+        $rm->setRepositoryClass('artifactory', 'Composer\Repository\ArtifactoryRepository');
         $rm->setRepositoryClass('path', 'Composer\Repository\PathRepository');
 
         return $rm;
