@@ -121,7 +121,7 @@ class ArtifactoryRepository extends ArrayRepository
 
     private function getComposerInformation($dataUri)
     {
-        $cacheKey = base64_encode($dataUri) . '.json';
+        $cacheKey = md5($dataUri) . '.json';
         if ($res = $this->cache->read($cacheKey)) {
             $package = JsonFile::parseJson($res);
         } else {
