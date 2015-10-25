@@ -85,7 +85,13 @@ class ArtifactoryRepository extends ArrayRepository
         foreach ($results as $result) {
             $dataUri = $result->uri;
 
-            $package = $this->getComposerInformation($dataUri);
+            try {
+                $package = $this->getComposerInformation($dataUri);
+            } catch(\Exception $e) {
+                $io->writeError("Error to get composer.json from <comment>{$dataUri}</comment>: " . $e->getMessage());
+                continue;
+            }
+
             if (!$package) {
                 if ($io->isVerbose()) {
                     $io->writeError("File <comment>{$dataUri}</comment> doesn't seem to hold a package");
