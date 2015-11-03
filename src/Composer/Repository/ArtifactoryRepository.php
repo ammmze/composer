@@ -101,7 +101,7 @@ class ArtifactoryRepository extends ArrayRepository
 
             if ($io->isVerbose()) {
                 $template = 'Found package <info>%s</info> (<comment>%s</comment>) in file <info>%s</info>';
-                $io->writeError(sprintf($template, $package->getName(), $package->getPrettyVersion(), $package['dist']['url']));
+                $io->writeError(sprintf($template, $package->getName(), $package->getPrettyVersion(), $package->getDistUrl()));
             }
 
             $this->addPackage($package);
