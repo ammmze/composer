@@ -43,7 +43,13 @@ class ArtifactoryRepository extends ArrayRepository
         $this->searchName = $repoConfig['searchName'];
         $this->repos = $repoConfig['repos'] ?: array();
         $this->io = $io;
-        $this->cache = new Cache($io, $config->get('cache-repo-dir').'/'.preg_replace('{[^a-z0-9.]}i', '-', $repoConfig['url']), 'a-z0-9.$');
+        $this->cache = new Cache(
+            $io,
+            $config->get('cache-repo-dir') . '/' .
+            preg_replace('{[^a-z0-9.]}i', '-', $repoConfig['url']) . '/' .
+            preg_replace('{[^a-z0-9.]}i', '-', $repoConfig['searchName']),
+            'a-z0-9.$'
+        );
         $this->versionParser = new VersionParser();
     }
 
