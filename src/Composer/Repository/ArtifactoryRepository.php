@@ -87,8 +87,39 @@ class ArtifactoryRepository extends ArrayRepository
 
         $results = $response->results;
 
+        // for the same version, we only need the latest artifact
+        $versionUrlMap = array();
         foreach ($results as $result) {
             $dataUri = $result->uri;
+
+            // get the version and name from uri
+            $urlPieces = explode('/', $dataUri);
+            $artifactVersion = $urlPieces[count($urlPieces) - 2];
+            $artifactName = $urlPieces[count($urlPieces) - 1];
+            // remove .jar in the name
+            $artifactName = substr($artifactName, 0, count($artifactName) - 5);
+            // get the version number from the name
+            $artifactNamePieces = explode('-', $artifactName);
+            $artifactVersionNum = $artifactNamePieces[count($artifactNamePieces) - 1];
+
+            if (!isset($versionUrlMap[$artifactVersion])) {
+                $versionUrlMap[$artifactVersion] = array(
+                    'artifactVersionNum' => intval($artifactVersionNum),
+                    'dataUri' => $dataUri
+                );
+            } else {
+                // compare and choose the newer one
+                if (intval($artifactVersionNum) > $versionUrlMap[$artifactVersion]['artifactVersionNum']) {
+                    $versionUrlMap[$artifactVersion] = array(
+                        'artifactVersionNum' => intval($artifactVersionNum),
+                        'dataUri' => $dataUri
+                    );
+                }
+            }
+        }
+
+        foreach ($versionUrlMap as $result) {
+            $dataUri = $result['dataUri'];
 
             try {
                 $package = $this->getComposerInformation($dataUri);
